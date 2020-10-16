@@ -2,7 +2,7 @@
 
 ### Information about this fork
 
-* This fork add a cohort filter to the enrollment plugin. Using multiple instances of the enrollment plugin it is possible to create some kind of "matrix" based on course completion for different cohorts.
+* This fork adds a cohort filter to the enrolment plugin. Using multiple instances of the enrollment plugin it is possible to create some kind of "matrix" based on course completion for different cohorts.
 
 This fork is maintained by [iMi digital GmbH)(https://www.imi-digital.de/en/)
 
