@@ -25,7 +25,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2020101300;
+/**
+ * Bump the version number by 100 years, so the plugin will not get overwritten by the original plugin
+ */
+$plugin->version = 2120101300;
 $plugin->requires  = 2019052000;
 $plugin->release = '3.7+';
 $plugin->maturity = MATURITY_STABLE;
