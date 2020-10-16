@@ -25,6 +25,28 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+
+/**
+ * Force aggregation on each course page view
+ */
+function enrol_coursecompleted_after_require_login() {
+    global $SCRIPT;
+    global $DB;
+
+    if ($SCRIPT != '/course/view.php' && $SCRIPT != '/my/index.php') {
+        return;
+    }
+
+    $completionTask = new \core\task\completion_regular_task();
+    $completionTask->execute();
+
+    // Force reaggregate
+    $sql = "UPDATE {course_completions} SET reaggregate = 1 WHERE reaggregate > 0";
+    $DB->execute($sql);
+
+    $completionTask->execute();
+}
+
 /**
  * Coursecompleted enrolment plugin.
  *
@@ -45,6 +67,11 @@ class enrol_coursecompleted_plugin extends enrol_plugin {
         global $DB;
         if ($short = $DB->get_field('course', 'shortname', ['id' => $instance->customint1])) {
             $coursename = format_string($short, true, ['context' => context_course::instance($instance->customint1)]);
+            if ($instance->customint8) {
+                $cohort = format_string($DB->get_field('cohort', 'name', ['id' => $instance->customint8]), true);
+                return get_string('aftercourse_cohort', 'enrol_coursecompleted', ['name' => $coursename, 'cohort' => $cohort]);
+            }
+
             return get_string('aftercourse', 'enrol_coursecompleted', $coursename);
         }
         return get_string('coursedeleted', '', $instance->customint1);
@@ -62,7 +89,14 @@ class enrol_coursecompleted_plugin extends enrol_plugin {
         foreach ($instances as $instance) {
             if ($fullname = $DB->get_field('course', 'fullname', ['id' => $instance->customint1])) {
                 $context = context_course::instance($instance->customint1);
-                $name = format_string($fullname, true, ['context' => $context]);
+
+                if ($instance->customint8) {
+                    $cohort = format_string($DB->get_field('cohort', 'name', ['id' => $instance->customint8]), true);
+                    $name = get_string('aftercourse_cohort', 'enrol_coursecompleted', ['name' => $fullname, 'cohort' => $cohort]);
+                } else {
+                    $name = format_string($fullname, true, ['context' => $context]);
+                }
+
                 $arr[] = new pix_icon('icon', get_string('aftercourse', 'enrol_coursecompleted', $name), 'enrol_coursecompleted');
             }
         }
@@ -174,7 +208,8 @@ class enrol_coursecompleted_plugin extends enrol_plugin {
             $merge = false;
         } else {
             $merge = ['courseid' => $course->id, 'enrol' => 'coursecompleted', 'roleid' => $data->roleid,
-                      'customint1' => $data->customint1, 'customint2' => $data->customint2, 'customint3' => $data->customint3];
+                      'customint1' => $data->customint1, 'customint2' => $data->customint2, 'customint3' => $data->customint3,
+                      'customint8' => $data->customint8];
         }
         if ($merge && $instances = $DB->get_records('enrol', $merge, 'id')) {
             $instance = reset($instances);
@@ -327,6 +362,10 @@ class enrol_coursecompleted_plugin extends enrol_plugin {
 
         $mform->addElement('textarea', 'customtext1',
             get_string('customwelcome', 'enrol_coursecompleted'), ['cols' => '60', 'rows' => '8']);
+
+        /** @see \MoodleQuickForm_cohort */
+        $mform->addElement('cohort', 'customint8', get_string('cohort', 'cohort'), ['multiple' => false, 'contextid' => $context->id]);
+
         $mform->addHelpButton('customtext1', 'customwelcome', 'enrol_coursecompleted');
         $mform->disabledIf('customtext1', 'customint2', 'notchecked');
 
@@ -371,6 +410,10 @@ class enrol_coursecompleted_plugin extends enrol_plugin {
                 $data['customint1'] == 1 or
                 !$DB->record_exists('course', ['id' => $data['customint1']])) {
                 $errors['customint'] = get_string('error_nonexistingcourse', 'tool_generator');
+            }
+            if (empty($data['customint8']) or
+                !$DB->record_exists('cohort', ['id' => $data['customint8']])) {
+                $errors['customint8'] = get_string('error_nonexistingcohort', 'tool_generator');
             }
         }
         return $errors;

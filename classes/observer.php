@@ -49,6 +49,20 @@ class enrol_coursecompleted_observer {
                 if ($DB->record_exists('role', ['id' => $enrol->roleid])) {
                     // Invalid courses are already detected when context is calculated.
                     if ($DB->record_exists('course', ['id' => $enrol->courseid])) {
+
+                        if ($enrol->customint8) {
+                            if (cohort_is_member($enrol->customint8, $event->relateduserid)) {
+                                if (debugging()) {
+                                    mtrace('Cohort membership found, enrolling');
+                                }
+                            } else {
+                                if (debugging()) {
+                                    mtrace('Cohort membership found, skipping this enrol');
+                                }
+                                continue;
+                            }
+                        }
+
                         if ($enrol->enrolperiod > 0) {
                             $enrol->enrolenddate = max(time(), $enrol->enrolstartdate) + $enrol->enrolperiod;
                         }

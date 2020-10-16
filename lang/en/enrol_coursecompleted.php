@@ -24,6 +24,7 @@
  */
 
 $string['aftercourse'] = 'After completing course: {$a}';
+$string['aftercourse_cohort'] = 'Matrix: after {$a->name} | for: {$a->cohort}';
 $string['cachedef_compcourses'] = 'Enrolment on course completion cache';
 $string['coursecompleted:config'] = 'Configure enrol coursecompletion instances';
 $string['coursecompleted:manage'] = 'Manage enrolled users';
