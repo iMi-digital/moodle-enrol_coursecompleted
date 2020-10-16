@@ -411,8 +411,7 @@ class enrol_coursecompleted_plugin extends enrol_plugin {
                 !$DB->record_exists('course', ['id' => $data['customint1']])) {
                 $errors['customint'] = get_string('error_nonexistingcourse', 'tool_generator');
             }
-            if (empty($data['customint8']) or
-                !$DB->record_exists('cohort', ['id' => $data['customint8']])) {
+            if (!empty($data['customint8']) && !$DB->record_exists('cohort', ['id' => $data['customint8']])) {
                 $errors['customint8'] = get_string('error_nonexistingcohort', 'tool_generator');
             }
         }
